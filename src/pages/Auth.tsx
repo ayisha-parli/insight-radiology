@@ -42,8 +42,9 @@ const Auth = () => {
     setError('');
 
     const redirectUrl = `${window.location.origin}/`;
+    console.log('Attempting signup with:', { email, redirectUrl });
     
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -51,15 +52,24 @@ const Auth = () => {
       }
     });
 
+    console.log('Signup response:', { data, error });
+
     if (error) {
+      console.error('Signup error:', error);
       if (error.message.includes('User already registered')) {
         setError('Account already exists. Please sign in instead.');
+      } else if (error.message.includes('Email not confirmed')) {
+        setError('Please check your email and click the confirmation link first.');
       } else {
         setError(error.message);
       }
     } else {
       setError('');
-      alert('Check your email for the confirmation link!');
+      if (data.user && !data.user.email_confirmed_at) {
+        alert('Check your email for the confirmation link!');
+      } else {
+        console.log('User created successfully:', data.user);
+      }
     }
     setLoading(false);
   };
@@ -69,14 +79,21 @@ const Auth = () => {
     setLoading(true);
     setError('');
 
-    const { error } = await supabase.auth.signInWithPassword({
+    console.log('Attempting signin with:', email);
+
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
 
+    console.log('Signin response:', { data, error });
+
     if (error) {
+      console.error('Signin error:', error);
       if (error.message.includes('Invalid login credentials')) {
         setError('Invalid email or password. Please try again.');
+      } else if (error.message.includes('Email not confirmed')) {
+        setError('Please confirm your email first by clicking the link in your email.');
       } else {
         setError(error.message);
       }
