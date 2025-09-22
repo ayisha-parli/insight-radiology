@@ -2,7 +2,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, Upload, Scan, ZoomIn, RotateCcw } from "lucide-react";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import StepIndicator from "@/components/StepIndicator";
 
 const ImageAnalysis = () => {
@@ -10,9 +10,15 @@ const ImageAnalysis = () => {
   const navigate = useNavigate();
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [imageUploaded, setImageUploaded] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleImageUpload = () => {
-    setImageUploaded(true);
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+      setImageUploaded(true);
+    }
   };
 
   const handleAnalyze = () => {
@@ -49,24 +55,34 @@ const ImageAnalysis = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Upload Panel */}
           <Card className="p-6 bg-glass-card backdrop-blur-md border-glass-border shadow-glass">
-            <h3 className="text-xl font-semibold text-foreground mb-4">Upload Images</h3>
+            <h3 className="text-xl font-semibold text-foreground mb-4">Upload File</h3>
             
             {!imageUploaded ? (
-              <div 
-                className="border-2 border-dashed border-glass-border rounded-lg p-8 text-center cursor-pointer hover:border-primary/50 transition-colors"
-                onClick={handleImageUpload}
-              >
-                <Upload className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <p className="text-foreground font-medium mb-2">Click to upload medical images</p>
-                <p className="text-sm text-muted-foreground">
-                  Supports DICOM, PNG, JPG formats
-                </p>
+              <div>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  id="file-upload"
+                  className="hidden"
+                  accept="image/*,application/pdf"
+                  onChange={handleFileSelect}
+                />
+                <label
+                  htmlFor="file-upload"
+                  className="border-2 border-dashed border-glass-border rounded-lg p-8 text-center cursor-pointer hover:border-primary/50 transition-colors block"
+                >
+                  <Upload className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <p className="text-foreground font-medium mb-2">Click to upload image or PDF</p>
+                  <p className="text-sm text-muted-foreground">
+                    Supports PDF, PNG, JPG formats
+                  </p>
+                </label>
               </div>
             ) : (
               <div className="space-y-4">
                 <div className="bg-success-light border border-success/20 rounded-lg p-4">
-                  <p className="text-success font-medium">✓ Chest X-Ray uploaded successfully</p>
-                  <p className="text-sm text-success/80">chest_xray_001.dcm</p>
+                  <p className="text-success font-medium">✓ File uploaded successfully</p>
+                  <p className="text-sm text-success/80">{selectedFile?.name}</p>
                 </div>
                 
                 <div className="flex space-x-2">
